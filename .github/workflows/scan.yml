@@ -1,0 +1,30 @@
+name: DejiFX Scanner
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Restore alert log
+        uses: actions/cache@v4
+        with:
+          path: alert_log.json
+          key: alert-log-${{ github.run_id }}
+          restore-keys: |
+            alert-log-
+      - name: Run scanner
+        env:
+          TWELVE_DATA_KEY: ${{ secrets.TWELVEDATAKEY }}
+          BOT_TOKEN: ${{ secrets.BOTTOKEN }}
+          CHAT_ID: ${{ secrets.CHATID }}
+        run: python3 scanner.py
+      - name: Save alert log
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: alert_log.json
+          key: alert-log-${{ github.run_id }}
